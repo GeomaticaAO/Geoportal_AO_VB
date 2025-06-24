@@ -28,7 +28,7 @@
     <!-- Estilos extra para el botón de consulta en el sidebar -->
     <style>
       /* Mantener la estructura de la barra lateral */
-      .sidebar-container {
+       .sidebar-container{
         /* Tus estilos para esta sección ya existentes */
       }
       
@@ -36,7 +36,7 @@
         margin-top: 20px;
       }
       
-      /* Actualizamos el botón de "Consulta otros mapas" */
+      /* Actualizamos el botón de "Consulta otros mapas"                */
       #consultaMapasBtn {
         padding: 10px;
         background-color: #922B21;
@@ -51,7 +51,7 @@
       
       #consultaMapasBtn:hover {
         background-color: #7a1f1a;
-      }
+      }*/
     </style>
   </head>
 
@@ -133,8 +133,8 @@
           <div class="contenido-informacion">
             <!-- Campo de búsqueda de Colonias -->
             <div class="form">
-              <label class="label_buscar_colonia" for="floatingInput">Buscar Colonia</label>
-              <input type="text" class="form-control" id="floatingInput" placeholder="Escribir Colonia...">
+              <label class="label_buscar_colonia" for="floatingInput">Buscador</label>
+              <input type="text" class="form-control" id="floatingInput" placeholder="Escribir Colonia o Sitio">
               <div id="suggestions" class="suggestions"></div>
             </div>
           </div>
@@ -172,6 +172,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Script que controla la visualización y lógica de las estadísticas en el modal -->
     <script src="estadisticas.js"></script>
+    <!-- Script que controla la actualización de las capas cada 10 segundos -->
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
     <!-- CONSULTA DE LÓGICA JAVASCRIPT -->
 
@@ -208,10 +210,10 @@
         var consultaMapasBtn = document.getElementById("consultaMapasBtn");
         if (consultaMapasBtn) {
           consultaMapasBtn.addEventListener("click", function() {
-            window.open(
+           window.open(
               "https://drive.google.com/file/d/1qlX5IhZBskU-7atSn5a989xtCiRhkof9/view?usp=sharing",
               "_blank"
-            );
+           );
           });
         }
       });
