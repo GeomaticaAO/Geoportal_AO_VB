@@ -1,194 +1,254 @@
 document.addEventListener("DOMContentLoaded", function () {
-    // Verifica si Leaflet y el mapa están definidos
     if (typeof L === "undefined" || typeof map === "undefined") {
-      console.error("Leaflet o el mapa no están definidos. Verifica que `mapabase.js` se cargue primero.");
-      return;
+        console.error("Leaflet o el mapa no están definidos.");
+        return;
     }
-  
-    // Crear un "pane" exclusivo para las capas de puntos con z-index alto
+
     if (!map.getPane('capasPuntosPane')) {
-      map.createPane('capasPuntosPane');
-      map.getPane('capasPuntosPane').style.zIndex = 450;
+        map.createPane('capasPuntosPane');
+        map.getPane('capasPuntosPane').style.zIndex = 650;
     }
-  
-    // Objeto para almacenar las capas de puntos
-    let capasPuntos = {};
-  
-    // Verifica que exista el contenedor en el sidebar
-    let controlCapasContainer = document.getElementById("controlCapasContainer");
+
+    const capasPuntos = {};
+    const controlCapasContainer = document.getElementById("controlCapasContainer");
     if (!controlCapasContainer) {
-      console.error("No se encontró el contenedor #controlCapasContainer en el HTML.");
-      return;
+        console.error("No se encontró el contenedor #controlCapasContainer.");
+        return;
     }
-  
-    // Crear la lista de controles en el sidebar
-    let listaCapas = document.createElement("ul");
+
+    const listaCapas = document.createElement("ul");
     listaCapas.className = "lista-capas";
     controlCapasContainer.appendChild(listaCapas);
-  
-    // Diccionario de íconos personalizados para cada capa
+
+    // Íconos: Centros de Desarrollo Comunitario
     const iconosCapas = {
-      "Centros de Atencion y Cuidado Infantil": L.icon({
-        iconUrl: "img/icono/CACI.png",
-        iconSize: [40, 40],
-        iconAnchor: [30, 30],
-        popupAnchor: [0, -32]
-      }),
-      "Casas de Adulto Mayor": L.icon({
-        iconUrl: "img/icono/CAM.png",
-        iconSize: [40, 40],
-        iconAnchor: [30, 30],
-        popupAnchor: [0, -32]
-      }),
-      "Centros de Desarrollo Comunitario": L.icon({
-        iconUrl: "img/icono/CDC.png",
-        iconSize: [40, 40],
-        iconAnchor: [30, 30],
-        popupAnchor: [0, -32]
-      }),
-      "Centros Culturales": L.icon({
-        iconUrl: "img/icono/CC.png",
-        iconSize: [40, 40],
-        iconAnchor: [30, 30],
-        popupAnchor: [0, -32]
-      }),
-      "Centros Interactivos": L.icon({
-        iconUrl: "img/icono/CDC_CI.png",
-        iconSize: [40, 40],
-        iconAnchor: [30, 30],
-        popupAnchor: [0, -32]
-      }),
-      "Centros de Artes y Oficios": L.icon({
-        iconUrl: "img/icono/CAO.png",
-        iconSize: [40, 40],
-        iconAnchor: [30, 30],
-        popupAnchor: [0, -32]
-      })
+        "Centros de Desarrollo Comunitario": L.icon({
+            iconUrl: "img/icono/CDC.png",
+            iconSize: [40, 40],
+            iconAnchor: [30, 30],
+            popupAnchor: [0, -32]
+        })
     };
-  
-    // Función para cargar cada capa GeoJSON
-    function cargarCapaPuntos(nombreCapa, url) {
-      fetch(url)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`Error al cargar ${nombreCapa}: ${response.statusText}`);
-          }
-          return response.json();
-        })
-        .then(data => {
-          console.log(`Capa ${nombreCapa} cargada correctamente`, data);
-  
-          // Crear la capa GeoJSON sin añadirla al mapa de inmediato
-          capasPuntos[nombreCapa] = L.geoJSON(data, {
-            pane: 'capasPuntosPane',
-            pointToLayer: function (feature, latlng) {
-              return L.marker(latlng, { icon: iconosCapas[nombreCapa] });
-            },
-            onEachFeature: function (feature, layer) {
-              // Configuración de popup según el tipo de capa
-              if (nombreCapa === "Centros de Atencion y Cuidado Infantil") {
-                let name = feature.properties["Name"] || "Sin nombre";
-                let tipoInstalaciones = feature.properties["Tipo de in"] || "Sin información";
-                let edades = feature.properties["Edades"] || "Sin información";
-                let direccion = feature.properties["Direccion"] || "Sin información";
-                layer.bindPopup(
-                  `<b>Centro de Atención y Cuidado Infantil</b><br>
-                   <b>Nombre:</b> ${name}<br>
-                   <b>Tipo de Instalaciones:</b> ${tipoInstalaciones}<br>
-                   <b>Edades:</b> ${edades}<br>
-                   <b>Dirección:</b> ${direccion}`
-                );
-              } else if (nombreCapa === "Casas de Adulto Mayor") {
-                let name = feature.properties.Name || "Sin nombre";
-                let numero = feature.properties["NUMERO"] || "Sin número";
-                layer.bindPopup(
-                  `<b>Nombre:</b> ${name}<br>
-                   <b>Número:</b> ${numero}`
-                );
-              } else if (nombreCapa === "Centros de Desarrollo Comunitario") {
-                let name = feature.properties["Name"] || "Sin nombre";
-                let direc = feature.properties["Direc"] || "Sin dirección";
-                layer.bindPopup(
-                  `<b>Centro de Desarrollo Comunitario</b><br>
-                   <b>Nombre:</b> ${name}<br>
-                   <b>Dirección:</b> ${direc}`
-                );
-              } else if (nombreCapa === "Centros Culturales") {
-                let name = feature.properties["Name"] || "Sin nombre";
-                let direc = feature.properties["Direc"] || "Sin dirección";
-                layer.bindPopup(
-                  `<b>Centro Cultural</b><br>
-                   <b>Nombre:</b> ${name}<br>
-                   <b>Dirección:</b> ${direc}`
-                );
-              } else if (nombreCapa === "Centros Interactivos") {
-                let name = feature.properties["Name"] || "Sin nombre";
-                let direc = feature.properties["Concat"] || "Sin dirección";
-                layer.bindPopup(
-                  `<b>Centro Interactivo</b><br>
-                   <b>Nombre:</b> ${name}<br>
-                   <b>Dirección:</b> ${direc}`
-                );
-              } else if (nombreCapa === "Centros de Artes y Oficios") {
-                let name = feature.properties["Name"] || "Sin nombre";
-                let direc = feature.properties["Concat"] || "Sin dirección";
-                layer.bindPopup(
-                  `<b>Centro CAO</b><br>
-                   <b>Nombre:</b> ${name}<br>
-                   <b>Dirección:</b> ${direc}`
-                );
-              } else {
-                let nombre = feature.properties.Nombre || "Sin nombre";
-                layer.bindPopup(`<b>${nombreCapa}</b><br>${nombre}`);
-              }
+
+    const urlCSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQHAUUwIZdDhl16SZRrr1B7ecSWWCoYFYEXorSWP12U_0FEwoefgkVzaslXDCn4ww/pub?output=csv";
+
+    fetch(urlCSV)
+        .then(response => response.text())
+        .then(csvText => {
+            Papa.parse(csvText, {
+                header: false,
+                skipEmptyLines: true,
+                complete: function (results) {
+                    const data = results.data.slice(1);
+                    const capa = L.layerGroup([], { pane: 'capasPuntosPane' });
+
+                    data.forEach(columnas => {
+                        const name = columnas[1]?.trim();
+                        const tipo = columnas[2]?.trim();
+                        const direc = columnas[3]?.trim();
+                        const lat = parseFloat(columnas[4]);
+                        const lng = parseFloat(columnas[5]);
+                        let linkGoogle = columnas[6]?.trim();
+                        const contacto = columnas[7]?.trim();
+                        const actGratis = columnas[8]?.trim();
+                        const actCosto = columnas[9]?.trim();
+                        const observaciones = columnas[10]?.trim();
+                        const linkFoto = columnas[11]?.trim();
+
+                        if (!isNaN(lat) && !isNaN(lng)) {
+                            let popup = `<b>${name}</b><br>`;
+                            if (tipo) popup += `<b>Tipo:</b> ${tipo}<br>`;
+                            if (direc) popup += `<b>Dirección:</b> ${direc}<br>`;
+
+                            if (linkGoogle) {
+                                const limpio = linkGoogle.replace(/^"+|"+$/g, "").trim();
+                                const urlSegura = encodeURI(limpio);
+                                popup += `<b>Ubicación:</b> <a href="${urlSegura}" target="_blank" rel="noopener noreferrer">Abrir en Google Maps</a><br>`;
+                            }
+
+                            if (contacto) popup += `<b>Contacto:</b> ${contacto}<br>`;
+                            if (actGratis) popup += `<b>Actividades Gratuitas:</b> ${actGratis}<br>`;
+                            if (actCosto) popup += `<b>Actividades con Costo:</b> ${actCosto}<br>`;
+                            if (observaciones) popup += `<b>Observaciones:</b> ${observaciones}<br>`;
+                            if (linkFoto) popup += `<b>Foto:</b> <a href="${linkFoto}" target="_blank">Ver imagen</a><br>`;
+
+                            const marker = L.marker([lat, lng], {
+                                icon: iconosCapas["Centros de Desarrollo Comunitario"],
+                                pane: 'capasPuntosPane'
+                            }).bindPopup(popup);
+
+                            capa.addLayer(marker);
+
+                            // 👉 Registro en el buscador unificado
+                            if (typeof registrarElementoBuscable === "function") {
+                                registrarElementoBuscable({
+                                    nombre: name,
+                                    capa: "Centros de Desarrollo Comunitario",
+                                    marker: marker
+                                });
+                            }
+
+                            
+                        }
+                    });
+
+                    capasPuntos["Centros de Desarrollo Comunitario"] = capa;
+
+                    const itemCapa = document.createElement("li");
+                    const checkbox = document.createElement("input");
+                    checkbox.type = "checkbox";
+                    checkbox.checked = false;
+
+                    checkbox.addEventListener("change", function () {
+                        if (checkbox.checked) {
+                            capa.addTo(map);
+                        } else {
+                            map.removeLayer(capa);
+                        }
+                    });
+
+                    const iconoImg = document.createElement("img");
+                    iconoImg.src = iconosCapas["Centros de Desarrollo Comunitario"].options.iconUrl;
+                    iconoImg.width = 24;
+                    iconoImg.height = 24;
+                    iconoImg.style.marginRight = "8px";
+
+                    const label = document.createElement("span");
+                    label.textContent = "Centros de Desarrollo Comunitario";
+
+                    itemCapa.appendChild(checkbox);
+                    itemCapa.appendChild(iconoImg);
+                    itemCapa.appendChild(label);
+                    listaCapas.appendChild(itemCapa);
+                }
+            });
+        });
+// Capa: Módulos Deportivos
+const urlCSVModulos = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTB17wAqRP0vSPM2x68YQBluo4oaYYtMLydDev0yDpqV65Gsx5brSHRTs7aX9rixw/pub?output=csv";
+
+const iconosEstado = {
+    "Bueno": L.icon({
+        iconUrl: "img/icono/modulo_verde.png",
+        iconSize: [20, 30],
+        iconAnchor: [25, 20],
+        popupAnchor: [10, -20]
+    }),
+    "Regular": L.icon({
+        iconUrl: "img/icono/modulo_amarillo.png",
+        iconSize: [20, 30],
+        iconAnchor: [25, 20],
+        popupAnchor: [10, -20]
+    }),
+    "Malo": L.icon({
+        iconUrl: "img/icono/modulo_rojo.png",
+        iconSize: [20, 30],
+        iconAnchor: [25, 20],
+        popupAnchor: [10, -20]
+    })
+};
+
+fetch(urlCSVModulos)
+    .then(response => response.text())
+    .then(csvText => {
+        Papa.parse(csvText, {
+            header: false,
+            skipEmptyLines: true,
+            complete: function (results) {
+                const data = results.data.slice(1);
+                const capaModulos = L.layerGroup([], { pane: 'capasPuntosPane' });
+
+                data.forEach(columnas => {
+                    // DEPURACIÓN
+                    console.log("====== Fila recibida ======");
+                    console.log(columnas);
+                    console.log("columnas.length:", columnas.length);
+
+                    const nombre = columnas[1]?.trim();
+                    const tipo = columnas[2]?.trim();
+                    const direccion = columnas[3]?.trim();
+                    const lat = parseFloat(columnas[4]);
+                    const lng = parseFloat(columnas[5]);
+                    const linkGoogle = columnas[6]?.trim();
+                    const contacto = columnas[7]?.trim();
+                    const actGratis = columnas[8]?.trim();
+                    const actCosto = columnas[9]?.trim();
+                    const talleres = columnas[10]?.trim();
+                    const horarios = columnas[11]?.trim();
+                    const edades = columnas[12]?.trim();
+                    const observaciones = columnas[13]?.trim();
+                    const linkFoto = columnas[14]?.trim();
+                    const estado = columnas[15]?.trim();
+
+                    // DEPURACIÓN
+                    console.log("Nombre:", nombre);
+                    console.log("Lat:", lat, "Lng:", lng, "Estado:", estado);
+
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        const icono = iconosEstado[estado] || iconosEstado["Regular"];
+
+                        let popup = `<b>${nombre}</b><br>`;
+                        if (tipo) popup += `<b>Tipo:</b> ${tipo}<br>`;
+                        if (direccion) popup += `<b>Dirección:</b> ${direccion}<br>`;
+                        if (linkGoogle) {
+                            const limpio = linkGoogle.replace(/^"+|"+$/g, "").trim();
+                            const urlSegura = encodeURI(limpio);
+                            popup += `<b>Ubicación:</b> <a href="${urlSegura}" target="_blank" rel="noopener noreferrer">Abrir en Google Maps</a><br>`;
+                        }
+                        if (contacto) popup += `<b>Contacto:</b> ${contacto}<br>`;
+                        if (actGratis) popup += `<b>Actividades Gratuitas:</b> ${actGratis}<br>`;
+                        if (actCosto) popup += `<b>Actividades con Costo:</b> ${actCosto}<br>`;
+                        if (talleres) popup += `<b>Talleres Eventuales:</b> ${talleres}<br>`;
+                        if (horarios) popup += `<b>Días y Horarios:</b> ${horarios}<br>`;
+                        if (edades) popup += `<b>Edades:</b> ${edades}<br>`;
+                        if (observaciones) popup += `<b>Observaciones:</b> ${observaciones}<br>`;
+                        if (linkFoto) popup += `<b>Foto:</b> <a href="${linkFoto}" target="_blank">Ver imagen</a><br>`;
+
+                        const marker = L.marker([lat, lng], {
+                            icon: icono,
+                            pane: 'capasPuntosPane'
+                        }).bindPopup(popup);
+
+                        capaModulos.addLayer(marker);
+
+                        registrarElementoBuscable({
+                        nombre: nombre,
+                        capa: "Módulos Deportivos",
+                        marker: marker
+                    });
+
+                    }
+                });
+
+                capasPuntos["Módulos Deportivos"] = capaModulos;
+
+                const itemCapa = document.createElement("li");
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.checked = false;
+
+                checkbox.addEventListener("change", function () {
+                    if (checkbox.checked) {
+                        capaModulos.addTo(map);
+                    } else {
+                        map.removeLayer(capaModulos);
+                    }
+                });
+
+                const iconoImg = document.createElement("img");
+                iconoImg.src = "img/icono/modulos.png";
+                iconoImg.width = 20;
+                iconoImg.height = 27;
+                iconoImg.style.marginRight = "8px";
+
+                const label = document.createElement("span");
+                label.textContent = "Módulos Deportivos";
+
+                itemCapa.appendChild(checkbox);
+                itemCapa.appendChild(iconoImg);
+                itemCapa.appendChild(label);
+                listaCapas.appendChild(itemCapa);
             }
-          });
-  
-          // Crear el ítem en la lista del sidebar para el control de la capa
-          let itemCapa = document.createElement("li");
-  
-          // Crear el checkbox para mostrar/ocultar la capa
-          let checkbox = document.createElement("input");
-          checkbox.type = "checkbox";
-          checkbox.checked = false; // La capa se inicia apagada
-  
-          // Al cambiar el estado, se agrega o quita la capa del mapa
-          checkbox.addEventListener("change", function () {
-            if (checkbox.checked) {
-              capasPuntos[nombreCapa].addTo(map);
-              capasPuntos[nombreCapa].bringToFront();
-            } else {
-              map.removeLayer(capasPuntos[nombreCapa]);
-            }
-          });
-  
-          // Crear la imagen del ícono de la capa
-          let iconoImg = document.createElement("img");
-          let icono = iconosCapas[nombreCapa];
-          iconoImg.src = icono ? icono.options.iconUrl : "img/icono/default.png";
-          iconoImg.width = 24;
-          iconoImg.height = 24;
-          iconoImg.style.marginRight = "8px";
-  
-          // Crear la etiqueta con el nombre de la capa
-          let label = document.createElement("span");
-          label.textContent = nombreCapa;
-  
-          // Agregar checkbox, ícono y etiqueta al ítem de la lista
-          itemCapa.appendChild(checkbox);
-          itemCapa.appendChild(iconoImg);
-          itemCapa.appendChild(label);
-          listaCapas.appendChild(itemCapa);
-  
-        })
-        .catch(error => console.error(`Error al cargar la capa ${nombreCapa}:`, error));
-    }
-  
-    // Llamar a la función para cargar cada una de las capas (sin activarlas inicialmente)
-    cargarCapaPuntos("Centros de Atencion y Cuidado Infantil", "archivos/vectores/dataSHP_CACI_mod.geojson");
-    cargarCapaPuntos("Casas de Adulto Mayor", "archivos/vectores/dataSHP_CAM_mod.geojson");
-    cargarCapaPuntos("Centros de Desarrollo Comunitario", "archivos/vectores/dataSHP_CDC_mod.geojson");
-    cargarCapaPuntos("Centros Culturales", "archivos/vectores/dataSHP_CC_mod.geojson");
-    cargarCapaPuntos("Centros Interactivos", "archivos/vectores/dataSHP_CDC_CI_mod.geojson");
-    cargarCapaPuntos("Centros de Artes y Oficios", "archivos/vectores/dataSHP_CAO_mod.geojson");
-  });
+        });
+    })
+    .catch(error => console.error("Error al cargar Módulos Deportivos:", error));
+});
