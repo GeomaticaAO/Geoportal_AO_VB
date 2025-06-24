@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
         center: [19.344796609, -99.238588729],
         zoom: 13,
         minZoom: 10,
-        maxZoom: 20,
+        maxZoom: 19,
         zoomControl: false,
         tap: false
     });
@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", function () {
         'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: '&copy; OpenStreetMap contributors',
             minZoom: 10,
-            maxZoom: 50
+            maxZoom: 19
         }
     ).addTo(map);
 
@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
         'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors',
             minZoom: 10,
-            maxZoom: 50
+            maxZoom: 19
         }
     );
 
